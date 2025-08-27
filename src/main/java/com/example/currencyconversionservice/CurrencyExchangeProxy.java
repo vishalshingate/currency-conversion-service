@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.math.BigDecimal;
 
-@FeignClient(name = "currency-exchange-service", url = "localhost:8200") //usually we give the name of the service which we want to call
+@FeignClient(name = "currency-exchange-service") //usually we give the name of the service which we want to call
 public interface CurrencyExchangeProxy {
     @GetMapping("/currency-exchange/from/{from}/to/{to}")
     public CurrencyConversion retrieveExchangeValue(@PathVariable String from, @PathVariable String to);
