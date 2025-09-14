@@ -1,6 +1,7 @@
 package com.example.currencyconversionservice.controller;
 
 import com.example.currencyconversionservice.CurrencyExchangeProxy;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,24 @@ public class CurrencyConversionController {
     public CurrencyConversion calculateCurrencyConversionFeign(@PathVariable String from, @PathVariable String to, @PathVariable
     BigDecimal quantity) {
         logger.info("Sample Api call received");
+        logger.info("will call exchange service to get exchange with {} {} quantity {}", from, to, quantity);
+        CurrencyConversion currencyConversion = currencyExchangeProxy.retrieveExchangeValue(from, to);
+
+        if (currencyConversion == null) {
+            throw new RuntimeException("Currency Conversion Not Found");
+        }
+        return new CurrencyConversion(
+            currencyConversion.getId(), from, to, quantity,
+            currencyConversion.getConversionMultiple(), quantity.multiply(currencyConversion.getConversionMultiple()),
+            currencyConversion.getEnvironment());
+
+    }
+
+    @CircuitBreaker(name = "default", fallbackMethod = "currencyExchangeFallback")
+    @GetMapping("/currency-conversion-feign-circuit/from/{from}/to/{to}/quantity/{quantity}")
+    public CurrencyConversion calculateCurrencyConversionFeignCircuit(@PathVariable String from, @PathVariable String to, @PathVariable
+    BigDecimal quantity) {
+        logger.info("Sample Api call for circuitBreaker received");
         logger.info("will call exchange service to get exchange with {} {} quantity {}", from, to, quantity);
         CurrencyConversion currencyConversion = currencyExchangeProxy.retrieveExchangeValue(from, to);
 
