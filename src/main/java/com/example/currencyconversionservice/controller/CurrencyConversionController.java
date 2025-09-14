@@ -1,6 +1,7 @@
 package com.example.currencyconversionservice.controller;
 
 import com.example.currencyconversionservice.CurrencyExchangeProxy;
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
@@ -49,6 +50,7 @@ public class CurrencyConversionController {
             currencyConversion.getEnvironment());
     }
     @Retry(name = "sample-api", fallbackMethod = "currencyExchangeFallback")
+    @Bulkhead(name="sample-api", fallbackMethod = "currencyExchangeFallback") // to configure concurrent calls
     @GetMapping("/currency-conversion-feign/from/{from}/to/{to}/quantity/{quantity}")
     public CurrencyConversion calculateCurrencyConversionFeign(@PathVariable String from, @PathVariable String to, @PathVariable
     BigDecimal quantity) {
