@@ -24,8 +24,10 @@ public class CurrencyConversionController {
     private CurrencyExchangeProxy currencyExchangeProxy;
     private Logger logger = LoggerFactory.getLogger(CurrencyConversionController.class);
 
+    @Autowired
+    private RestTemplate restTemplate; // @LoadBalanced bean defined elsewhere
 
-    @GetMapping("/from/{from}/to/{to}/quantity/{quantity}")
+    @GetMapping("/currency-conversion/from/{from}/to/{to}/quantity/{quantity}")
     public CurrencyConversion calculateCurrencyConversion(@PathVariable String from, @PathVariable String to, @PathVariable
     BigDecimal quantity) {
 
@@ -33,10 +35,9 @@ public class CurrencyConversionController {
         uirParams.put("from", from);
         uirParams.put("to", to);
 
-        // here we are using restTemplate to call the another microservice to get te data.
+        // Use Eureka service name (no port) so LoadBalancer/Eureka resolves container
         ResponseEntity<CurrencyConversion> responseEntity =
-            new RestTemplate().
-                getForEntity("http://localhost:8201/currency-exchange/from/{from}/to/{to}",
+            restTemplate.getForEntity("http://currency-exchange-service/currency-exchange/from/{from}/to/{to}",
                     CurrencyConversion.class, uirParams);
 
         CurrencyConversion currencyConversion = responseEntity.getBody();
@@ -98,4 +99,3 @@ public class CurrencyConversionController {
     }
 
 }
-
